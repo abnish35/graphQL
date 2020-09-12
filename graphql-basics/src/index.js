@@ -11,6 +11,8 @@ import { GraphQLServer } from 'graphql-yoga';
 
 const typeDefs = `
     type Query{
+        greetings(name: String, position: String): String!
+        addValue(v1: Float!, v2: Float!): String!
         me: User!
         post: Post!
     }
@@ -31,6 +33,29 @@ const typeDefs = `
 `
 const resolvers = {
     Query:{
+
+        addValue(parent, args, ctr, info){
+            if(args.v1 && args.v2){
+                return  `Sum is ${args.v1}` + `${args.v2}`
+            }
+            else if(args){
+                return args
+            }
+        },
+
+        greetings(parent, args, ctr, info){
+            if(args.name && args.position){
+                return `Hello ${args.name}! I am a best ${args.position}`
+            }
+            else if(args.name){
+                return `Hello ${args.name}!`
+            }
+            else if(args.position){
+                return `Your position is ${args.position}`
+            }
+                return "Hello!"
+            
+        },
         me(){
             return{
                 id: "12345",
