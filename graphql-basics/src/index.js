@@ -17,9 +17,11 @@ const users = [
 ]
 
 const posts =[
-    { id: "123", title: "GraphQL learning", body: "Best way to learn it", published: false },
-    { id: "157", title: "A way to learn", body: "Fantastic GraphQL Book Every one should read", published: true },
-    { id: "234", title: "A full stack developer", body: "Become a MERN Stack Developer", published: true }
+    { id: "123", title: "GraphQL learning", body: "Best way to learn it", published: false, author: "1" },
+
+    { id: "157", title: "A way to learn", body: "Fantastic GraphQL Book Every one should read", published: true, author: "1" },
+
+    { id: "234", title: "A full stack developer", body: "Become a MERN Stack Developer", published: true, author: "2" }
 ]
 
 const typeDefs = `
@@ -42,6 +44,7 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
     }
 `
 const resolvers = {
@@ -67,23 +70,12 @@ const resolvers = {
             return users.filter(user=> user.name.toLocaleLowerCase().includes(args.query.toLowerCase())
             )
         },
-
-        me(){
-            return{
-                id: "12345",
-                name: "Abnish",
-                email: "akp12556@gmail.com",
-                age: 24,
-                name: "Alok"
-            }
-        },
-        post(){
-            return{
-                id: "45678",
-                title: "This is first Post",
-                body: "About GraphQL",
-                published: false
-            }
+    },
+    Post: {
+        author(parent, args, ctx, info){
+            console.log(parent)
+            return users.find((user)=>  {
+            return user.id === parent.author})
         }
     }
 } 
@@ -119,6 +111,23 @@ server.start(()=>{
     //   } }
 
 
+    // me(){
+    //     return{
+    //         id: "12345",
+    //         name: "Abnish",
+    //         email: "akp12556@gmail.com",
+    //         age: 24,
+    //         name: "Alok"
+    //     }
+    // },
+    // post(){
+    //     return{
+    //         id: "45678",
+    //         title: "This is first Post",
+    //         body: "About GraphQL",
+    //         published: false
+    //     }
+    // }
 
 
 
