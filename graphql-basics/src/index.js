@@ -8,6 +8,7 @@ import { GraphQLServer } from 'graphql-yoga';
 // Object and Array
 
 // At the end of eact data type, there is "!" mark, that show that This type will return someting other than null. if you donot put "!" at the end of data type, it will give "null" value to it.
+// Relational operation
 
 // create a user data
 const users = [
@@ -24,12 +25,20 @@ const posts =[
     { id: "234", title: "A full stack developer", body: "Become a MERN Stack Developer", published: true, author: "2" }
 ]
 
+const comments =[ 
+    { id: "c1", text: "This is the first comment", author: "1", post: "123" },
+    { id: "c2", text: "this is second comment", author: "2", post: "157" },
+    { id: "c3", text: " This is third comment", author: "2", post: "123" },
+    { id: "c4", text: "This is fourth comment", author: "1", post: "234" }
+ ]
+
 const typeDefs = `
     type Query{
         users(query: String): [User!]! 
         posts(query: String): [Post]!
         me: User!
         post: Post!
+        comment: [Comment!]!
     }
 
     type User{
@@ -37,6 +46,8 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
+        posts: [Post]!
+        comments: [Comment!]! 
     }
 
     type Post{
@@ -45,6 +56,14 @@ const typeDefs = `
         body: String!
         published: Boolean!
         author: User!
+        comments: [Comment]!
+    }
+
+    type Comment{
+        id: ID!
+        text: String!
+        author: User!
+        post: Post!
     }
 `
 const resolvers = {
@@ -70,14 +89,47 @@ const resolvers = {
             return users.filter(user=> user.name.toLocaleLowerCase().includes(args.query.toLowerCase())
             )
         },
+
+        comment(){
+            return comments
+        }
     },
     Post: {
         author(parent, args, ctx, info){
-            console.log(parent)
             return users.find((user)=>  {
             return user.id === parent.author})
+        },
+        comments(parent, args, ctx, info){
+            return comments.filter(comment=>{
+                return comment.post === parent.id
+            })
         }
-    }
+    },
+    User: {
+        posts(parent, args, ctx, info){
+            return posts.filter((post)=>{
+                return post.author === parent.id
+            })
+        },
+        comments(parent, args, ctx, info){
+            return comments.filter((comment)=>{
+                return comment.author === parent.id
+            })
+        } 
+    },
+
+    Comment: {
+        author(parent, args, ctx, info){
+            return users.find((user)=>{
+                return user.id === parent.author
+            })
+        },
+        post(parent, args, ctx, info){
+            return posts.find((post)=>{
+                return post.id === parent.post
+            })
+        }
+    },
 } 
 
 const server = new GraphQLServer({
@@ -88,6 +140,89 @@ const server = new GraphQLServer({
 server.start(()=>{
     console.log(" The server is up!")
 })
+
+
+// Now the above is the relation between the comments, users, posts and author. to access this below is the code
+
+// query{
+//     posts{
+//       id
+//       author{
+//         name
+//       }
+//         comments{
+//         id
+//         text
+//         author{
+//           name
+//         }
+//       }
+//     }
+//   }
+
+// this is the OUTPUT
+
+
+// {
+//     "data": {
+//       "posts": [
+//         {
+//           "id": "123",
+//           "author": {
+//             "name": "Abnish"
+//           },
+//           "comments": [
+//             {
+//               "id": "c1",
+//               "text": "This is the first comment",
+//               "author": {
+//                 "name": "Abnish"
+//               }
+//             },
+//             {
+//               "id": "c3",
+//               "text": " This is third comment",
+//               "author": {
+//                 "name": "Alok"
+//               }
+//             }
+//           ]
+//         },
+//         {
+//           "id": "157",
+//           "author": {
+//             "name": "Abnish"
+//           },
+//           "comments": [
+//             {
+//               "id": "c2",
+//               "text": "this is second comment",
+//               "author": {
+//                 "name": "Alok"
+//               }
+//             }
+//           ]
+//         },
+//         {
+//           "id": "234",
+//           "author": {
+//             "name": "Alok"
+//           },
+//           "comments": [
+//             {
+//               "id": "c4",
+//               "text": "This is fourth comment",
+//               "author": {
+//                 "name": "Abnish"
+//               }
+//             }
+//           ]
+//         }
+//       ]
+//     }
+//   }
+
+
 
 
 // IF you donot pass agruments and want to return an array, you can write code in this manner. 
