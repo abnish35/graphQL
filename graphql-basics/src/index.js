@@ -1,4 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga';
+import {v4 as uuidv4} from 'uuid';
 
 // Type definition (schema)
 // Scalar Type or Data type in GraphQL 
@@ -39,6 +40,11 @@ const typeDefs = `
         me: User!
         post: Post!
         comment: [Comment!]!
+    }
+
+    type Mutation {
+        createUser(name: String! email: String! age: Int) : User!
+        createPost(title: String! body: String! published: Boolean! author: String!): Post!
     }
 
     type User{
@@ -94,6 +100,47 @@ const resolvers = {
             return comments
         }
     },
+    // rosolver function for createUser, and createpost mutation 
+
+    Mutation: {
+        createUser(parent, args, ctx, info){
+            const emailTaken = users.some((user)=> user.email === args.email)
+            
+            if(emailTaken){
+                throw new Error("Email already exists")
+            }
+
+            const user ={
+                id: uuidv4(),
+                name: args.name,
+                email: args.email,
+                age: args.age
+            }
+
+            users.push(user)
+            return user
+
+        },
+        createPost(parent, args, ctx, info){
+            const userExist = users.some((user)=>user.id === args.author)
+
+            if(!userExist){
+                throw new Error("User not valid")
+            }
+
+            const post = {
+                id: uuidv4(),
+                title: args.title,
+                body: args.body,
+                published: args.published,
+                author: args.author,
+            }
+            posts.push(post)
+            return post
+
+        }
+    },
+
     Post: {
         author(parent, args, ctx, info){
             return users.find((user)=>  {
@@ -140,6 +187,46 @@ const server = new GraphQLServer({
 server.start(()=>{
     console.log(" The server is up!")
 })
+
+// access of the mutation of create user and create post 
+
+// creare user mutation
+
+// mutation{
+//     createUser(name: "Ashish", email:"ashish@example.com", age:25){
+//       id
+//       name
+//       age
+//       email
+//     }
+//   }
+
+
+// create post mutation 
+
+// mutation{
+//     createPost(
+//       title: "my updated post",
+//       body: "updated body",
+//       published:false,
+//       author: "90562142-e14e-440c-8e8c-90e0bd494f6d"( this id is same of user id )
+//     )
+//   {
+//     id
+//     title
+//     body
+//     published
+//     author{
+//       name
+//       email
+//       comments{
+//         text
+//       }
+//     }
+//   }
+//   }
+
+
 
 
 // Now the above is the relation between the comments, users, posts and author. to access this below is the code
